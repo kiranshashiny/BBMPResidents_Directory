@@ -27,6 +27,7 @@ https://gba.karnataka.gov.in/electionfiles/ENGLISH_F/2_46_17_E.pdf
 (Entire AC)
 Sl. No. 1 to 700
 
+ 2_49_1_E.pdf  is whihte house apartment.
 
 2_46_17 is ward 46
 
