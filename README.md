@@ -38,6 +38,10 @@ https://gba.karnataka.gov.in/electionfiles/ENGLISH_F/2_55_2_E.pdf
 2_46_17 is ward 46
 
 ```
+Other Links
+To know the ward number
+
+https://gba.karnataka.gov.in/KnowYourNewCorporation/
 
 
 
