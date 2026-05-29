@@ -2,6 +2,9 @@
 #include <fstream>
 #include <string>
 #include <regex>
+#include <glob.h>
+#include <sstream>
+#include <vector>
 
 using namespace std;
 
@@ -12,10 +15,16 @@ struct Person {
 	string house;
 	int age;
 	char gender;
+	int wardname;
+	char pollinglocation [300];
+	char filename [300];
 };
 
-struct Person residents [600];
+struct Person residents [2000];
 int resCount=0;
+int debug=0;
+string filename;
+
 
 string removeNonAscii(string line) {
 
@@ -54,7 +63,7 @@ vector<string> splitAgeGender(string line) {
 	      parts.push_back(item);
 	}
   
-	for (int i = 0; i < parts.size(); i++) {
+	for (size_t i = 0; i < parts.size(); i++) {
 	 
 		cout << "Part " << i + 1 << " = "
 		           << parts[i] << endl;
@@ -186,15 +195,27 @@ string processHouse(string line) {
 	return line;
 }
 
+	
 void addResidents ( string firstline, string secondline ) {
+
 
 	vector<string> firstresult = splitByPipe(firstline);
 	vector<string> secondresult = splitByPipe(secondline);
 
-	for (int i = 0; i < firstresult.size(); i++) {
+	if ( 0 ) { 
+		cout << "size of first "  << firstresult.size()  << endl;
+		cout << "size of second " << secondresult.size() << endl; 
+	}
+	if ( firstresult.size() != secondresult.size() ) {
+		cout << "found some error, skipping adding to Db " << firstresult[0] <<endl;
+		return ;
+
+	}
+
+	for (size_t i = 0; i < firstresult.size(); i++) {
 	
 		//cout << "NameShashi " << i + 1 << " = "
-	    //        << firstresult[i] << "    " << secondresult[i] << endl;
+	    //       << firstresult[i] <<  " Parent : " << secondresult[i] << endl;
 
 	    residents[resCount].name = firstresult[i];
 	    residents[resCount].parent = secondresult[i];
@@ -210,7 +231,7 @@ void printResidents () {
 	cout << " ==================" << endl;
 
 	for ( int i=0; i< resCount ; i++ ) {
-		cout << residents[i].name << "  " <<  residents[i].parent << endl;
+		cout << i << " " <<residents[i].name << "  " <<  residents[i].parent << endl;
 		
 		cout << endl;
 	}
@@ -234,6 +255,17 @@ string searchReplace(string haystack,
 
     return haystack;
 }
+string eraseChar (string argline,  char ch ){
+
+    argline.erase(
+        remove(argline.begin(),
+               argline.end(),
+               ch),
+        argline.end()
+    );
+
+	return argline;
+}
 
 
 string cleanupline ( string line ) {
@@ -247,11 +279,34 @@ string cleanupline ( string line ) {
     line = regex_replace(line, regex("|"), "");
     line = regex_replace(line, regex("]"), "");
     line = regex_replace(line, regex("}"), "");
+    
     line = regex_replace(line, regex("-"), "");
     line = regex_replace(line, regex("--"), "");
     line = regex_replace(line, regex("-"), "");
+    line = regex_replace(line, regex("<"), "");
+    line = regex_replace(line, regex(">"), "");
+	line = eraseChar ( line, '{' );
+    line = regex_replace(line, regex("Eathers:Name"), "Father's Name :");
 
     replace(line.begin(), line.end(), '|', ' ');
+
+    line.erase(
+        remove(line.begin(),
+               line.end(),
+               '{'),
+        line.end()
+    );
+
+    line.erase(
+        remove(line.begin(),
+               line.end(),
+               '|'),
+        line.end()
+    );
+
+	line = eraseChar ( line, '<' );
+	line = eraseChar ( line, ')' );
+
     //line = regex_replace(line, regex("Available"), "");
     line = searchReplace(line, "Available", "");
     line = searchReplace(line, "|", "");
@@ -271,23 +326,37 @@ string cleanupline ( string line ) {
 
 string addPipeSeparator ( string line ) {
 
-	/*line = regex_replace(line,
-	                regex("Father's Name"),
-	                "| Father's Name");
-    */
+    if ( debug ) cout << "In addPipe Eathers" <<endl;
+    
+	line = regex_replace(
+          line,
+          regex(R"(Eather[';]?s?\s+Name)"),
+          "| Father's Name");
+
+    if ( debug ) cout << "In addPipe Fathers" <<endl;
+
 	line = regex_replace(
           line,
           regex(R"(Father[';]?s?\s+Name)"),
           "| Father's Name");
 
+    if (debug) cout << "In addPipe Husband's" <<endl;
+
 	line = regex_replace(line,
 	               regex("Husband's Name"),
 	                "| Husband's Name");
 
+    if (debug) cout << "In addPipe Mother's" <<endl;
 	line = regex_replace(line,
 	                regex("Mother's Name"),
 	                "| Mother's Name");
 
+    if (debug) cout << "In addPipe Mothers" <<endl;
+	line = regex_replace(line,
+	                regex("Mothers Name"),
+	                "| Mother's Name");
+
+    if (debug) cout << "In addPipe Other's" <<endl;
 	line = regex_replace(line,
 	                regex("Other's"),
 	                "| Other's");
@@ -302,7 +371,7 @@ string addPipeSeparator ( string line ) {
 void splitNames (string line ) {
 
 	vector<string> result = splitByPipe(line);
-	for (int i = 0; i < result.size(); i++) {
+	for (size_t i = 0; i < result.size(); i++) {
 
 		cout << "Part " << i + 1 << " = "
 				 << result[i] << endl;
@@ -313,7 +382,7 @@ void splitNames (string line ) {
 void splitParentsNames (string line ) {
 
 	vector<string> result = splitByPipe(line);
-	for (int i = 0; i < result.size(); i++) {
+	for (size_t i = 0; i < result.size(); i++) {
 
 		cout << "Parent " << i + 1 << " = "
             << result[i] << endl;
@@ -331,17 +400,20 @@ string addAgeGenderPipeSeparator ( string line ) {
 	return line;
 }
 
-int main(int argc, char *argv[]) {
+int main() {
 
 
-	if ( argc < 2 ) {
+    glob_t results;
 
- 		cout << "Usage: ./program filename.txt" << endl;
-	    return 1;
-	}
+	if ( debug ) cout << "started in main,, before glob " <<endl;
+	glob("page-*.txt", 0, NULL, &results);
 
-	// Take filename from command line
-	string filename = argv[1];
+    for (size_t i = 0; i < results.gl_pathc; i++) {
+
+        filename = results.gl_pathv[i];
+
+        cout << "Processing: " << filename << endl;
+
 
 	ifstream file(filename);
 
@@ -359,6 +431,7 @@ int main(int argc, char *argv[]) {
 	while (getline(file, line)) {
 
 	    // Remove "Photo"
+		if ( debug ) cout << "started main " << endl;
 
 	   if ( isEmptyLine (line ) ){
 		continue;
@@ -367,11 +440,14 @@ int main(int argc, char *argv[]) {
 		  cout << endl;
 		  continue; // Skip line
 	   } 
+		if ( debug ) cout << "after isdigit " << endl;
 		line = cleanupline ( line ) ;
+		if ( debug ) cout << "after cleanup " << endl;
 
 	    // Names line  // 1st line
 
 	    if (hasExactName(line)) {
+			if ( debug ) cout << "in hasExactName " << endl;
 
 	        line = regex_replace(line,
 	                regex("Name"),
@@ -392,15 +468,16 @@ int main(int argc, char *argv[]) {
 	        line.find("Mother's Name") != string::npos ||
 	        line.find("Other's") != string::npos ||
 	        line.find("Fathers Name") != string::npos ||
+	        line.find("Eathers Name") != string::npos ||
 	        line.find("Father's Name") != string::npos) 
 	    {
-			//replace(line.begin(), line.end(), ' ', '.');
 
+			//cout << "2:before" <<  line << endl;
 			line = addPipeSeparator ( line );
 
 			secondline = line;
 			//splitParentsNames ( secondline );
-			cout << "2:" <<  secondline << endl;
+			//cout << "2:after " <<  secondline << endl;
 		    addResidents( firstline, secondline );
 		    
 	    }
@@ -432,12 +509,13 @@ int main(int argc, char *argv[]) {
 			cout <<  fourthline << endl;
 	    }
 */
-	}
-	cout << "Total " << resCount << endl;
-
+	} //while loop/
 	file.close();
+	} //for loop
+
 	cout <<  "================" << endl;
 	printResidents ();
+	cout << "Total " << resCount << endl;
 
 	return 0;
 }
