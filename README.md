@@ -38,7 +38,48 @@ https://gba.karnataka.gov.in/electionfiles/ENGLISH_F/2_55_2_E.pdf
 2_46_17 is ward 46
 
 ```
+
+
+Tools
+
+sudo apt install poppler-utils
+
+sudo apt install ocrmypdf tesseract-ocr
+
+sudo apt install tesseract-ocr poppler-utils -y
+
+
+KEY COMMAND to split the pdf to multiple text pages.
+
+```
+pdftoppm file.pdf page -png
+
+
+for f in page-*.png
+do
+    tesseract "$f" "${f%.png}"
+done
+
+```
+
+
+
+
+
+
 Other Links
+
+st Xaviers
+
+https://gba.karnataka.gov.in/electionfiles/ENGLISH_F/1_3_11_E.pdf
+
+
+
+Tools
+
+
+
+
 To know the ward number
 
 https://gba.karnataka.gov.in/KnowYourNewCorporation/
