@@ -52,13 +52,23 @@ sudo apt install tesseract-ocr poppler-utils -y
 KEY COMMAND to split the pdf to multiple text pages.
 
 ```
-pdftoppm file.pdf page -png
 
+1.
+pdftoppm -png input.pdf page
+
+// runs for 10 minutes
+// will create series of png files page-01.png page-02.png
+
+2. 
+
+pdftoppm file.pdf page -png
 
 for f in page-*.png
 do
     tesseract "$f" "${f%.png}"
 done
+
+// will create a bunch of page-01.txt, page-02.txt
 
 ```
 
